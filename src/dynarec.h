@@ -8,6 +8,7 @@
 
 #include "dynarmic/interface/A64/a64.h"
 #include "dynarmic/interface/A64/config.h"
+#include "dynarmic/interface/exclusive_monitor.h"
 
 #define DYNAREC_MEMBLK_SIZE (32 * 1024 * 1024)
 
@@ -16,6 +17,8 @@ public:
 	std::uint64_t ticks_left = 0;
 	std::uint8_t *memory = nullptr;
 	std::uint64_t mem_size = 0;
+	Dynarmic::A64::Jit *parent = nullptr;
+
 
 	std::uint64_t getCyclesForInstruction(bool isThumb, std::uint32_t instruction) {
 		(void)isThumb;
@@ -25,47 +28,47 @@ public:
 	}
 
 	std::uint8_t MemoryRead8(std::uint64_t vaddr) override {
-		return memory[vaddr];
+		return *reinterpret_cast<uint8_t*>(vaddr);
 	}
 
 	std::uint16_t MemoryRead16(std::uint64_t vaddr) override {
-		return *(std::uint16_t *)(memory + vaddr);
+		return *reinterpret_cast<uint16_t*>(vaddr);
 	}
 
 	std::uint32_t MemoryRead32(std::uint64_t vaddr) override {
-		return *(std::uint32_t *)(memory + vaddr);
+		return *reinterpret_cast<uint32_t*>(vaddr);
 	}
 
 	std::uint64_t MemoryRead64(std::uint64_t vaddr) override {
-		return *(std::uint64_t *)(memory + vaddr);
+		return *reinterpret_cast<uint64_t*>(vaddr);
 	}
 	
 	Dynarmic::A64::Vector MemoryRead128(std::uint64_t vaddr) override {
-		Dynarmic::A64::Vector data;
-		data[0] = *(std::uint16_t *)(memory + vaddr);
-		data[1] = *(std::uint16_t *)(memory + vaddr + 8);
-		return data;
+		return Dynarmic::A64::Vector{
+			*reinterpret_cast<uint64_t*>(vaddr),
+			*reinterpret_cast<uint64_t*>(vaddr + 8)
+		};
 	}
 
 	void MemoryWrite8(std::uint64_t vaddr, std::uint8_t value) override {
-		memory[vaddr] = value;
+		*reinterpret_cast<uint8_t*>(vaddr) = value;
 	}
 
 	void MemoryWrite16(std::uint64_t vaddr, std::uint16_t value) override {
-		*(std::uint16_t *)(memory + vaddr) = value;
+		*reinterpret_cast<uint16_t*>(vaddr) = value;
 	}
 
 	void MemoryWrite32(std::uint64_t vaddr, std::uint32_t value) override {
-		*(std::uint32_t *)(memory + vaddr) = value;
+		*reinterpret_cast<uint32_t*>(vaddr) = value;
 	}
 
 	void MemoryWrite64(std::uint64_t vaddr, std::uint64_t value) override {
-		*(std::uint64_t *)(memory + vaddr) = value;
+		*reinterpret_cast<uint64_t*>(vaddr) = value;
 	}
 	
 	void MemoryWrite128(std::uint64_t vaddr, Dynarmic::A64::Vector value) override {
-		*(std::uint64_t *)(memory + vaddr) = value[0];
-		*(std::uint64_t *)(memory + vaddr + 8) = value[1];
+		*reinterpret_cast<uint64_t*>(vaddr) = value[0];
+		*reinterpret_cast<uint64_t*>(vaddr + 8) = value[1];
 	}
 	
 	bool MemoryWriteExclusive8(std::uint64_t vaddr, std::uint8_t value, [[maybe_unused]] std::uint8_t expected) override {
@@ -120,5 +123,6 @@ public:
 
 extern so_env so_dynarec_env;
 extern Dynarmic::A64::Jit *so_dynarec;
+extern Dynarmic::ExclusiveMonitor *so_monitor;
 
 #endif

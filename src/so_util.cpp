@@ -15,6 +15,7 @@
 #include "so_util.h"
 
 so_env so_dynarec_env;
+Dynarmic::ExclusiveMonitor *so_monitor = nullptr;
 Dynarmic::A64::Jit *so_dynarec = nullptr;
 
 void *text_base, *text_virtbase;

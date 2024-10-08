@@ -77,11 +77,18 @@ int main(int argc, char** argv) {
 	return 0;
 }*/
 
+static uint8_t dynarec_stack[1024 * 1024 * 8];
 void setupDynarec() {
 	Dynarmic::A64::UserConfig user_config;
+	so_monitor = new Dynarmic::ExclusiveMonitor(1);
+	// user_config.very_verbose_debugging_output = true;
+	user_config.global_monitor = so_monitor;
 	user_config.callbacks = &so_dynarec_env;
+	user_config.enable_cycle_counting = false; /* don't return until exec done - we're using wallclock */
+	user_config.fastmem_pointer = (uintptr_t)nullptr; /* same address space as host */
 	so_dynarec = new Dynarmic::A64::Jit(user_config);
-	printf("AARCH64 dynarec inited with address: 0x%x\n", so_dynarec);
+	so_dynarec->SetSP((uintptr_t)&dynarec_stack[sizeof(dynarec_stack)]);
+	so_dynarec_env.parent = so_dynarec;
 }
 
 int main() {
@@ -91,6 +98,10 @@ int main() {
 		printf("FATAL ERROR: OpenGL failed to be inited.\n");
 		return -1;
 	}
+
+	// Setup dynarec
+	printf("Setting up dynarec...\n");
+	setupDynarec();
 	
 	// Load main game elf
 	printf("Loading %s...\n", MAIN_ELF_PATH);
@@ -107,10 +118,6 @@ int main() {
 	// Resolve imports with native implementations
 	printf("Resolving imports...\n");
 	so_resolve(dynarec_imports, dynarec_imports_num, 1);
-	
-	// Setup dynarec
-	printf("Setting up dynarec...\n");
-	setupDynarec();
 	
 	// Flush dynarec cache
 	printf("Flushing dynarec code cache...\n");
