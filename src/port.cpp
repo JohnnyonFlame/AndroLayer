@@ -54,13 +54,12 @@ int exec_booting_sequence(void *dynarec_base_addr) {
 		return -1;
 	}
 	
-	printf("initGraphics: 0x%llx\n", (uint64_t)initGraphics);
-	printf("ShowJoystick: 0x%llx\n", (uint64_t)ShowJoystick);
-	printf("NVEventAppMain: 0x%llx\n", (uint64_t)NVEventAppMain);
+	printf("initGraphics: 0x%p\n", (void*)initGraphics);
+	printf("ShowJoystick: 0x%p\n", (void*)ShowJoystick);
+	printf("NVEventAppMain: 0x%p\n", (void*)NVEventAppMain);
 	
 	
-	so_dynarec->SetPC(initGraphics);
-	so_dynarec_env.ticks_left = 1;
+	so_dynarec->SetPC((uintptr_t)initGraphics);
 	so_dynarec->Run();
 	
 	return 0;

@@ -136,10 +136,10 @@ int so_load(const char *filename, void **base_addr) {
 		res = -3;
 		goto err_free_so;
 	}
-	printf("Total LOAD size: %llu bytes\n", load_size);
+	printf("Total LOAD size: %lu bytes\n", (unsigned long)load_size);
 
 	// allocate space for all load segments (align to page size)
-	printf("Allocating dynarec memblock of %llu bytes\n", DYNAREC_MEMBLK_SIZE);
+	printf("Allocating dynarec memblock of %lu bytes\n", (unsigned long)DYNAREC_MEMBLK_SIZE);
 	load_base = malloc(DYNAREC_MEMBLK_SIZE);
 	*base_addr = load_base;
 	if (!load_base)
