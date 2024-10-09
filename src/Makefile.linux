@@ -1,0 +1,33 @@
+TARGET := AndroLayer
+
+all: $(TARGET)
+
+LIBS = \
+	$(shell pkg-config glfw3 --libs) \
+	-Ldynarmic/build/src/dynarmic      -l:libdynarmic.a \
+	-Ldynarmic/build/externals/mcl/src -l:libmcl.a \
+	-Ldynarmic/build/externals/fmt     -l:libfmt.a \
+	-lZydis
+
+OBJS = \
+	port.o \
+	so_util.o \
+	main.o \
+	glad/glad.o
+
+DEPENDS = ${OBJS:.o=.d}
+
+CXXFLAGS = --std=c++20 -MMD -O0 -fpermissive -g \
+	$(pkg-config glfw3 --cflags) \
+	-I./dynarmic/src
+
+CXX = g++
+CC = gcc
+
+$(TARGET): $(OBJS)
+	$(CXX) $(CXXFLAGS) $^ $(LIBS) -o $@
+
+-include ${DEPENDS}
+
+clean:
+	@rm -rf $(TARGET) $(DEPENDS) $(OBJS)

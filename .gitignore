@@ -1,4 +1,6 @@
 *.o
+*.d
 *.exe
 *.so
+AndroLayer
 assets/*
