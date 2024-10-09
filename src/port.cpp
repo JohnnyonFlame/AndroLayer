@@ -1,4 +1,5 @@
 #include "glad/glad.h"
+#include <pthread.h>
 #include <GLFW/glfw3.h>
 
 #include <stdio.h>
@@ -8,6 +9,7 @@
 
 #include "dynarec.h"
 #include "so_util.h"
+#include "thunk_gen.h"
 #include "port.h"
 
 /*
@@ -26,12 +28,40 @@ int __android_log_print(int prio, const char *tag, const char *fmt, ...) {
 	return 0;
 }
 
+thread_local void (*_tls__init_func)(void) = nullptr;
+thread_local Dynarmic::A64::Jit *_tls__init_func_jit = nullptr;
+
+int pthread_once_fake (Dynarmic::A64::Jit *jit, pthread_once_t *__once_control, void (*__init_routine) (void))
+{
+	// Store the current pthread_once elements
+	_tls__init_func = __init_routine;
+	_tls__init_func_jit = jit;
+
+	// call pthread_once with a custom routine to callback the jit
+	return pthread_once(__once_control, []() {
+		// TODO:: [guest->]host->guest (recursive jit) callbacks
+	});
+}
+
+int pthread_create_fake (Dynarmic::A64::Jit *jit, pthread_t *__restrict __newthread,
+			   const pthread_attr_t *__restrict __attr,
+			   void *(*__start_routine) (void *),
+			   void *__restrict __arg)
+{
+	std::abort();
+	return 0;
+}
+
 /*
  * List of imports to be resolved with native variants
  */
+#define WRAPPER(name, func) gen_wrapper<&func>(name)
 dynarec_import dynarec_imports[] = {
-	{"__android_log_print", __android_log_print},
-	{"glDeleteShader", glDeleteShader}
+	WRAPPER("pthread_once", pthread_once_fake),
+	WRAPPER("pthread_create", pthread_create_fake),
+	// WRAPPER(pthread_once),
+	// WRAPPER(__android_log_print),
+	// WRAPPER(glDeleteShader),
 };
 size_t dynarec_imports_num = sizeof(dynarec_imports) / sizeof(*dynarec_imports);
 

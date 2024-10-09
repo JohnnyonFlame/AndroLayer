@@ -19,6 +19,7 @@ public:
 	std::uint64_t mem_size = 0;
 	Dynarmic::A64::Jit *parent = nullptr;
 
+	std::optional<std::uint32_t> MemoryReadCode(std::uint64_t vaddr);
 
 	std::uint64_t getCyclesForInstruction(bool isThumb, std::uint32_t instruction) {
 		(void)isThumb;
@@ -96,9 +97,7 @@ public:
 		printf("Interpreter fallback: 0x%llx\n", pc);
 	}
 
-	void CallSVC(std::uint32_t swi) override {
-		printf("CallSVC 0x%x\n", swi);
-	}
+	void CallSVC(std::uint32_t swi) override;
 
 	void ExceptionRaised(std::uint64_t pc, Dynarmic::A64::Exception exception) override {
 		printf("Exception raised: 0x%llx\n", pc);

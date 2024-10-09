@@ -14,11 +14,15 @@
 #define ALIGN_MEM(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
 typedef struct {
-  char *symbol;
-  uintptr_t func;
+  const char *symbol;
+  void (*func)(void *jit);
+  uint32_t trampoline[10];
 } dynarec_import;
 
-extern void *text_base, *data_base;
+extern dynarec_import dynarec_imports[];
+extern size_t dynarec_imports_num;
+
+extern uintptr_t text_base, data_base;
 extern size_t text_size, data_size;
 
 void hook_thumb(uintptr_t addr, uintptr_t dst);
@@ -28,8 +32,7 @@ void hook_arm64(uintptr_t addr, uintptr_t dst);
 void so_flush_caches(void);
 void so_free_temp(void);
 int so_load(const char *filename, void **base_addr);
-int so_relocate(void);
-int so_resolve(dynarec_import *funcs, int num_funcs, int taint_missing_imports);
+int so_relocate(dynarec_import *funcs, int num_funcs);
 void so_execute_init_array(void);
 uintptr_t so_find_addr(const char *symbol);
 uintptr_t so_find_addr_rx(const char *symbol);

@@ -113,19 +113,15 @@ int main() {
 	
 	// Relocate jumps and function calls to our dynarec virtual addresses
 	printf("Executing relocations...\n");
-	so_relocate();
-	
-	// Resolve imports with native implementations
-	printf("Resolving imports...\n");
-	so_resolve(dynarec_imports, dynarec_imports_num, 1);
-	
+	so_relocate(dynarec_imports, dynarec_imports_num);
+		
 	// Flush dynarec cache
 	printf("Flushing dynarec code cache...\n");
 	so_flush_caches();
 	
 	// Init static arrays
 	printf("Initing static arrays...\n");
-	//so_execute_init_array();
+	so_execute_init_array();
 	
 	// Start dynarec
 	printf("Starting dynarec...\n");
