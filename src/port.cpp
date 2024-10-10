@@ -54,6 +54,11 @@ int pthread_create_fake (Dynarmic::A64::Jit *jit, pthread_t *__restrict __newthr
 	return 0;
 }
 
+int __cxa_atexit_fake(void (*func) (void *), void *arg, void *dso_handle)
+{
+	return 0;
+}
+
 /*
  * List of imports to be resolved with native variants
  */
@@ -61,6 +66,12 @@ int pthread_create_fake (Dynarmic::A64::Jit *jit, pthread_t *__restrict __newthr
 dynarec_import dynarec_imports[] = {
 	WRAPPER("pthread_once", pthread_once_fake),
 	WRAPPER("pthread_create", pthread_create_fake),
+	WRAPPER("memset", memset),
+	WRAPPER("strcmp", strcmp),
+	WRAPPER("wctob", wctob),
+	WRAPPER("btowc", btowc),
+	WRAPPER("wctype", wctype),
+	WRAPPER("__cxa_atexit", __cxa_atexit_fake),
 	// WRAPPER(pthread_once),
 	// WRAPPER(__android_log_print),
 	// WRAPPER(glDeleteShader),

@@ -7,11 +7,7 @@
 #include <iostream>
 
 template<typename D, typename R, typename... Args>
-struct ThunkImpl {};
-
-template<typename D, typename R, typename... Args>
-struct ThunkImpl<D, R(*)(Args...)>
-{
+struct ThunkImpl {
     using Tuple = std::tuple<Args...>;
     static constexpr auto size = sizeof...(Args);
     
@@ -89,6 +85,10 @@ struct ThunkImpl<D, R(*)(Args...)>
         jit->SetPC(addr_next);
     }
 };
+
+template<typename D, typename R, typename... Args>
+struct ThunkImpl<D, R(*)(Args...)>: ThunkImpl<D, R, Args...>
+{ };
 
 template<typename D, typename R, typename... Args>
 struct ThunkImpl<D, R(*)(Args...) noexcept>: ThunkImpl<D, R, Args...>
