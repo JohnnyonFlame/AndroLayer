@@ -199,7 +199,7 @@ uintptr_t get_trampoline(const char *name, dynarec_import *funcs, int num_funcs)
 	for (int k = 0; k < num_funcs; k++) {
 		if (strcmp(name, funcs[k].symbol) == 0) {
 			if (funcs[k].ptr == NULL)
-			return (uintptr_t)funcs[k].trampoline;
+				return (uintptr_t)funcs[k].trampoline;
 			else
 				return (uintptr_t)funcs[k].symbol;
 		}

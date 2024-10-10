@@ -136,10 +136,10 @@ dynarec_import gen_wrapper(const char *symname)
     uint32_t *f_hilo = reinterpret_cast<uint32_t*>(&f); /* alias the function ptr */
 
     // - Setup the trampoline:
-        //   The trampoline works by loading the address of our wrapper into x17
-        // and then calling a SVC Handler that takes care of gathering the
-        // arguments from guest and passing them to the host function as needed
-        // injecting the jit context pointer if requested by the wrapped function.
+    //   The trampoline works by loading the address of our wrapper into x17
+    // and then calling a SVC Handler that takes care of gathering the
+    // arguments from guest and passing them to the host function as needed
+    // injecting the jit context pointer if requested by the wrapped function.
     return (dynarec_import){
         .symbol = symname,
         .ptr = 0,
