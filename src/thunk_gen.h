@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <typeinfo>
+#include <functional>
 #include <tuple>
 #include <iostream>
 
@@ -99,18 +100,29 @@ struct Thunk : ThunkImpl<Thunk<Def, PFN>, PFN>
 public:
     static inline PFN func;
     static inline const char* symname = NULL;
+    using ReturnType = decltype(std::function{func})::result_type;
 
     template<typename... Args>
     static auto bridge_impl(Args... args)
     {
 #ifndef NDEBUG
+        int i = 0;
         if (symname) {
-            std::cout << symname << "(";
-            ((std::cout << args << ", "), ...);
-            std::cout << ")\n";
+            std::cout << symname;
+            ((std::cout << ((i++) ? ", " : "(") << args), ...);
+            std::cout << ")";
         }
 #endif
-        return func(args...);
+#ifndef NDEBUG
+        if constexpr (std::is_void_v<ReturnType>) {
+            std::cout << "\n";
+            func(args...);
+        } else {
+            ReturnType ret = func(args...);
+            std::cout << " => " << ret << "\n";
+            return ret;
+        }
+#endif
     }
 };
 
