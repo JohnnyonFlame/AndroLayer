@@ -1,3 +1,4 @@
+#define __USE_GNU
 #include "glad/glad.h"
 #include <pthread.h>
 #include <GLFW/glfw3.h>
@@ -6,6 +7,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include "dynarec.h"
 #include "so_util.h"
@@ -72,6 +75,15 @@ dynarec_import dynarec_imports[] = {
 	WRAPPER("btowc", btowc),
 	WRAPPER("wctype", wctype),
 	WRAPPER("__cxa_atexit", __cxa_atexit_fake),
+	WRAPPER("gettimeofday", gettimeofday),
+	WRAPPER("srand", srand),
+	WRAPPER("malloc", malloc),
+	WRAPPER("strncmp", strncmp),
+	WRAPPER("strlen", strlen),
+	WRAPPER("strcpy", strcpy),
+	WRAPPER("memcpy", memcpy),
+	WRAPPER("strcasecmp", strcasecmp),
+	WRAPPER("getenv", getenv),
 	// WRAPPER(pthread_once),
 	// WRAPPER(__android_log_print),
 	// WRAPPER(glDeleteShader),
