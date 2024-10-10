@@ -396,7 +396,7 @@ void so_env::CallSVC(std::uint32_t swi)
 	case 1:
 		// Yield from guest for a moment to handle host code requested,
 		// leaving this instance available for nested callbacks and whatnot
-		printf("Halting for host func... %p\n", parent->GetRegister(16));
+		// printf("Halting for host func... %p\n", parent->GetRegister(16));
 		parent->HaltExecution(Dynarmic::HaltReason::UserDefined2);
 		break;
 	case 2: {
