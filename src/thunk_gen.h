@@ -41,9 +41,9 @@ struct ThunkImpl<D, R(*)(Args...)>
             return *(T*)sp;
         } else {
             if constexpr (std::is_floating_point_v<T>) {
-                return reinterpret_cast<T>(jit->GetVector(f));
+                return reinterpret_cast<T>(jit->GetVector(idx_reg));
             } else {
-                return reinterpret_cast<T>(jit->GetRegister(r));
+                return reinterpret_cast<T>(jit->GetRegister(idx_reg));
             }
         }
     }
