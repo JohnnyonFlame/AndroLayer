@@ -13,13 +13,18 @@
 
 #define ALIGN_MEM(x, align) (((x) + ((align) - 1)) & ~((align) - 1))
 
+namespace Dynarmic {
+namespace A64 {
+  class Jit; /* fwd declare Jit class just in case */
+}
+}
+
 typedef struct {
   const char *symbol;
-  void (*func)(void *jit);
+  uintptr_t ptr; /* NULL means using the trampoline instead. */
   uint32_t trampoline[10];
 } dynarec_import;
 
-class Dynarmic::A64::Jit; /* fwd declare jit just in case */
 
 extern dynarec_import dynarec_imports[];
 extern size_t dynarec_imports_num;
