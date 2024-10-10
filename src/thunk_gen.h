@@ -38,9 +38,11 @@ struct ThunkImpl {
             return *(T*)sp;
         } else {
             if constexpr (std::is_floating_point_v<T>) {
-                return reinterpret_cast<T>(jit->GetVector(idx_reg));
+                // Alias and read...
+                Dynarmic::Vector reg_val = jit->GetVector(idx_reg);
+                return *(T*)&reg_val;
             } else {
-                return reinterpret_cast<T>(jit->GetRegister(idx_reg));
+                return (T)jit->GetRegister(idx_reg);
             }
         }
     }
@@ -71,8 +73,8 @@ struct ThunkImpl {
             BraceCallVoid { get<Args>(reg_cnt, int_reg_cnt, float_reg_cnt, sp, jit)... };
         } else {
             R ret = BraceCall { get<Args>(reg_cnt, int_reg_cnt, float_reg_cnt, sp, jit)... }.ret;
-            if (std::is_floating_point_v<R>) {
-                double ret_cast = ret;
+            if constexpr (std::is_floating_point_v<R>) {
+                double ret_cast = (double)ret;
                 uint32_t *alias = (uint32_t*)&ret_cast;
                 jit->SetVector(0, Dynarmic::A64::Vector{alias[0], alias[1]});
             }
