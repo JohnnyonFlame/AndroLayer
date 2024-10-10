@@ -251,6 +251,22 @@ int so_relocate(dynarec_import *funcs, int num_funcs) {
 	return 0;
 }
 
+void so_run_fiber(Dynarmic::A64::Jit *jit, uintptr_t entry)
+{
+	jit->SetRegister(30, (uintptr_t)end_program_token);
+	jit->SetPC(entry);
+	Dynarmic::HaltReason reason = {};
+	while ((reason = jit->Run()) == Dynarmic::HaltReason::UserDefined2) {
+		auto host_next = (void (*)(void *))jit->GetRegister(16);
+		host_next((void*)jit);
+	}
+
+	if (reason != Dynarmic::HaltReason::UserDefined1) {
+		printf("Execution ended with failure.\n");
+		std::abort();
+	}
+}
+
 void so_execute_init_array(void) {
 	for (int i = 0; i < elf_hdr->e_shnum; i++) {
 		char *sh_name = shstrtab + sec_hdr[i].sh_name;
@@ -258,20 +274,7 @@ void so_execute_init_array(void) {
 			int (** init_array)() = (int (**)())((uintptr_t)text_base + sec_hdr[i].sh_addr);
 			for (int j = 0; j < sec_hdr[i].sh_size / 8; j++) {
 				if (init_array[j] != 0) {
-					so_dynarec->SetRegister(30, (uintptr_t)end_program_token);
-					so_dynarec->SetPC((uint64_t)init_array[j]);
-					if (so_dynarec->Run() != Dynarmic::HaltReason(0)) {
-						printf("Execution ended prematurely.\n");
-						std::terminate();
-					}
-					//Dynarmic::HaltReason reason;
-					//do {
-					//	printf("PC: %p (text_base+%p)\n", (void*)so_dynarec->GetPC(), (void*)(so_dynarec->GetPC() - (uintptr_t)text_base));
-					//} while ((reason = so_dynarec->Step()) == Dynarmic::HaltReason::Step);
-					//if (reason != Dynarmic::HaltReason(0)) {
-					//	printf("Halted with a failure reason.\n");
-					//	std::abort();
-					//}
+					so_run_fiber(so_dynarec, (uintptr_t)init_array[j]);
 				}
 			}
 		}
@@ -382,20 +385,27 @@ std::optional<std::uint32_t> so_env::MemoryReadCode(std::uint64_t vaddr)
 
 void so_env::CallSVC(std::uint32_t swi)
 {
-	uintptr_t pc = parent->GetPC() - 0x4;
-	if (swi == 0) {
+	switch (swi) {
+	case 0:
 		// Execution done
-		parent->HaltExecution();
-	} else if (swi == 1) {
-		// Call into known function (todo:: Add a check to see if we have this wrapped.) 
-		auto func = (void (*)(void *jit))parent->GetRegister(16);
-		printf("Calling %p\n", func);
-		func(parent);
-	} else if (swi == 2) {
+		parent->HaltExecution(Dynarmic::HaltReason::UserDefined1);
+		break;
+	case 1:
+		// Yield from guest for a moment to handle host code requested,
+		// leaving this instance available for nested callbacks and whatnot
+		printf("Halting for host func... %p\n", parent->GetRegister(16));
+		parent->HaltExecution(Dynarmic::HaltReason::UserDefined2);
+		break;
+	case 2: {
 		// Let's find the .got entry for this function, so we can display an error
 		// message.
 		uintptr_t f1 = parent->GetRegister(16);
 		printf("Unresolved symbol %s\n", so_find_rela_name(f1));
 		parent->HaltExecution(Dynarmic::HaltReason::MemoryAbort);
+		break;
+	}
+	default:
+		printf("Unknown service call %d\n", swi);
+		break;
 	}
 }

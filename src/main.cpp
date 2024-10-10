@@ -78,14 +78,18 @@ int main(int argc, char** argv) {
 }*/
 
 static uint8_t dynarec_stack[1024 * 1024 * 8];
-void setupDynarec() {
-	Dynarmic::A64::UserConfig user_config;
+Dynarmic::A64::UserConfig user_config;
+void setup_dynarec_config() {
 	so_monitor = new Dynarmic::ExclusiveMonitor(1);
 	// user_config.very_verbose_debugging_output = true;
 	user_config.global_monitor = so_monitor;
 	user_config.callbacks = &so_dynarec_env;
 	user_config.enable_cycle_counting = false; /* don't return until exec done - we're using wallclock */
 	user_config.fastmem_pointer = (uintptr_t)nullptr; /* same address space as host */
+}
+
+void setup_dynarec_main()
+{
 	so_dynarec = new Dynarmic::A64::Jit(user_config);
 	so_dynarec->SetSP((uintptr_t)&dynarec_stack[sizeof(dynarec_stack)]);
 	so_dynarec_env.parent = so_dynarec;
@@ -101,7 +105,8 @@ int main() {
 
 	// Setup dynarec
 	printf("Setting up dynarec...\n");
-	setupDynarec();
+	setup_dynarec_config();
+	setup_dynarec_main();
 	
 	// Load main game elf
 	printf("Loading %s...\n", MAIN_ELF_PATH);

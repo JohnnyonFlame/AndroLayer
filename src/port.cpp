@@ -39,7 +39,9 @@ int pthread_once_fake (Dynarmic::A64::Jit *jit, pthread_once_t *__once_control, 
 
 	// call pthread_once with a custom routine to callback the jit
 	return pthread_once(__once_control, []() {
-		// TODO:: [guest->]host->guest (recursive jit) callbacks
+		uintptr_t entry_point = (uintptr_t)_tls__init_func;
+		Dynarmic::A64::Jit *jit = _tls__init_func_jit;
+		so_run_fiber(jit, entry_point);
 	});
 }
 

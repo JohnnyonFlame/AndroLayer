@@ -122,6 +122,7 @@ public:
 
 extern so_env so_dynarec_env;
 extern Dynarmic::A64::Jit *so_dynarec;
+extern Dynarmic::A64::UserConfig user_config;
 extern Dynarmic::ExclusiveMonitor *so_monitor;
 
 #endif

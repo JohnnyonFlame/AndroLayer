@@ -19,6 +19,8 @@ typedef struct {
   uint32_t trampoline[10];
 } dynarec_import;
 
+class Dynarmic::A64::Jit; /* fwd declare jit just in case */
+
 extern dynarec_import dynarec_imports[];
 extern size_t dynarec_imports_num;
 
@@ -39,5 +41,6 @@ uintptr_t so_find_addr_rx(const char *symbol);
 uintptr_t so_find_rel_addr(const char *symbol);
 dynarec_import *so_find_import(dynarec_import *funcs, int num_funcs, const char *name);
 int so_unload(void);
+void so_run_fiber(Dynarmic::A64::Jit *jit, uintptr_t entry);
 
 #endif
