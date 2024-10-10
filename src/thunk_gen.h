@@ -104,6 +104,17 @@ public:
     static inline const char* symname = NULL;
     using ReturnType = decltype(std::function{func})::result_type;
 
+    // Convert any pointer type to a generic void* type
+    // avoids printing strings and others
+    template <typename T>
+    static auto as_void_ptr_if_pointer(T arg)
+    {
+        if constexpr (std::is_pointer_v<T>)
+            return (void*)arg;
+        else
+            return arg;
+    }
+
     template<typename... Args>
     static auto bridge_impl(Args... args)
     {
@@ -111,7 +122,7 @@ public:
         int i = 0;
         if (symname) {
             std::cout << symname;
-            ((std::cout << ((i++) ? ", " : "(") << args), ...);
+            ((std::cout << ((i++) ? ", " : "(") << as_void_ptr_if_pointer(args)), ...);
             std::cout << ")";
         }
 #endif
