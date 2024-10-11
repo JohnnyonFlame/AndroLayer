@@ -135,6 +135,12 @@ public:
             std::cout << " => " << ret << "\n";
             return ret;
         }
+#else
+        if constexpr (std::is_void_v<ReturnType>) {
+            func(args...);
+        } else {
+            return func(args...);
+        }
 #endif
     }
 };
